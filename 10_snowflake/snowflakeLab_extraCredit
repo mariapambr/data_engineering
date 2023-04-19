@@ -1,0 +1,34 @@
+USE ROLE ACCOUNTADMIN;
+USE DATABASE DS5559_DATA;
+USE SCHEMA PUBLIC;
+
+-- Create procedure in javascript
+CREATE OR REPLACE PROCEDURE get_iris_stats()
+RETURNS VARIANT
+LANGUAGE JAVASCRIPT
+AS
+$$
+    var columns = ['SEPAL_LENGTH', 'SEPAL_WIDTH', 'PETAL_LENGTH', 'PETAL_WIDTH'];
+    var result = {};
+
+    var sql = "SELECT AVG(SEPAL_LENGTH) as AVG_SEPAL_LENGTH, " +
+              "AVG(SEPAL_WIDTH) as AVG_SEPAL_WIDTH, " +
+              "AVG(PETAL_LENGTH) as AVG_PETAL_LENGTH, " +
+              "AVG(PETAL_WIDTH) as AVG_PETAL_WIDTH " +
+              "FROM IRIS_DATA";
+
+    var stmt = snowflake.createStatement({sqlText: sql});
+    var rs = stmt.execute();
+
+    rs.next();
+
+    for (var i = 0; i < columns.length; i++) {
+        var col = columns[i];
+        result['AVG_' + col] = rs.getColumnValue(i+1);
+    }
+
+    return result;
+$$;
+
+-- Call it and you should see the result of the return from javascript
+CALL get_iris_stats()
